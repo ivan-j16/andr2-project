@@ -5,4 +5,5 @@
     <string name="login_email_pass">Login with email</string>
     <string name="finalize_login_email_pass">Login</string>
     <string name="text_register">Or register here</string>
+    <string name="register">Register</string>
 </resources>

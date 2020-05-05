@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -22,14 +23,13 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
+
 
 public class LoginActivity extends AppCompatActivity {
     private GoogleSignInClient mGoogleSignInClient;
     private final static int RC_SIGN_IN_GOOGLE = 123;
     private FirebaseAuth mAuth;
-    private FirebaseAuth.AuthStateListener mAuthListener;
     private Button btnLoginGoogle;
     private Button btnLoginEmailPassword;
     private Button btnFinalizeLoginEmailPassword;
@@ -42,12 +42,7 @@ public class LoginActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-
-        mAuth.addAuthStateListener(mAuthListener);
-//        if(user!=null){
-//            Intent intent = new Intent(getApplicationContext(), ProfileActivity.class);
-//            startActivity(intent);
-//        }
+        mAuth = FirebaseAuth.getInstance();
     }
 
     @Override
@@ -55,29 +50,16 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        mAuth = FirebaseAuth.getInstance();
-
-        // Check if user is logged in
-        mAuthListener = new FirebaseAuth.AuthStateListener() {
-            @Override
-            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
-                FirebaseUser user = mAuth.getCurrentUser();
-                if (user != null) {
-                    Intent intent = new Intent(getApplicationContext(), ProfileActivity.class);
-                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                    startActivity(intent);
-                    finish();
-                }
-            }
-        };
-
         progressBar = findViewById(R.id.progress_circular);
+        emailField = findViewById(R.id.textEmail);
+        passwordField = findViewById(R.id.textPwrd);
 
         textGoToRegister = findViewById(R.id.textRegister);
         textGoToRegister.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                Intent intent = new Intent(getApplicationContext(), RegisterActivity.class);
+                startActivity(intent);
             }
         });
 
@@ -88,20 +70,28 @@ public class LoginActivity extends AppCompatActivity {
         btnLoginEmailPassword.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                signInEmailPassword();
+                showSignInEmailPasswordFields();
             }
         });
 
         btnLoginGoogle.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                createRequest();
-                signInGoogle();
+                createRequestAndSignIn();
             }
         });
+
+        btnFinalizeLoginEmailPassword.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+               signInEmailPassword();
+            }
+        });
+
+
     }
 
-    private void createRequest() {
+    private void createRequestAndSignIn() {
         // Configure Google Sign In
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestIdToken(getString(R.string.default_web_client_id))
@@ -110,10 +100,46 @@ public class LoginActivity extends AppCompatActivity {
 
         // Build a GoogleSignInClient with the options specified by gso.
         mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
+        signInGoogle();
+    }
+
+    private void showSignInEmailPasswordFields() {
+        btnLoginGoogle.setVisibility(View.INVISIBLE);
+        btnLoginEmailPassword.setVisibility(View.INVISIBLE);
+        btnFinalizeLoginEmailPassword.setVisibility(View.VISIBLE);
+        passwordField.setVisibility(View.VISIBLE);
+        emailField.setVisibility(View.VISIBLE);
+        textGoToRegister.setVisibility(View.VISIBLE);
     }
 
     private void signInEmailPassword() {
+        String loginEmail = emailField.getText().toString();
+        String loginPassword = passwordField.getText().toString();
 
+        // Login user
+        if (!TextUtils.isEmpty(loginEmail) && !TextUtils.isEmpty(loginPassword)) {
+            progressBar.setVisibility(View.VISIBLE);
+
+            mAuth.signInWithEmailAndPassword(loginEmail, loginPassword).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+                @Override
+                public void onComplete(@NonNull Task<AuthResult> task) {
+                    if (task.isSuccessful()) {
+                        progressBar.setVisibility(View.INVISIBLE);
+                        sentToMainActivity();
+                    }
+                    else {
+                        progressBar.setVisibility(View.INVISIBLE);
+                        String errorMessage = task.getException().getMessage();
+                        Toast.makeText(getApplicationContext(), "Error: " + errorMessage,
+                                Toast.LENGTH_LONG).show();
+                    }
+                }
+            });
+        }
+        else {
+            Toast.makeText(getApplicationContext(), "Incorrect password or email.",
+                    Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void signInGoogle() {
@@ -149,19 +175,24 @@ public class LoginActivity extends AppCompatActivity {
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (task.isSuccessful()) {
                             progressBar.setVisibility(View.INVISIBLE);
-                            // Sign in success, update UI with the signed-in user's information
-                            FirebaseUser user = mAuth.getCurrentUser();
-                            Intent intent = new Intent(getApplicationContext(), ProfileActivity.class);
-                            startActivity(intent);
+                            sentToMainActivity();
 
                         } else {
                             progressBar.setVisibility(View.INVISIBLE);
-                            Toast.makeText(getApplicationContext(), "Auth failure.",
-                                    Toast.LENGTH_SHORT).show();
+                            String errorMessage = task.getException().getMessage();
+                            Toast.makeText(getApplicationContext(), "Error: " + errorMessage,
+                                    Toast.LENGTH_LONG).show();
                         }
                     }
                 });
 
+    }
+
+    private void sentToMainActivity() {
+        Intent intent = new Intent(getApplicationContext(), ProfileActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        startActivity(intent);
+        finish();
     }
 
 }

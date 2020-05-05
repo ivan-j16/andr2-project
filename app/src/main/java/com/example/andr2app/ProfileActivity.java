@@ -11,7 +11,9 @@ import android.widget.TextView;
 
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.squareup.picasso.Picasso;
 
 
@@ -19,6 +21,24 @@ public class ProfileActivity extends AppCompatActivity {
     private TextView infoUser;
     private ImageView image;
     private Button btn_logout;
+    private FirebaseAuth mAuth;
+    private GoogleSignInAccount googleSignInAccount;
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        mAuth = FirebaseAuth.getInstance();
+        googleSignInAccount = GoogleSignIn.getLastSignedInAccount(this);
+
+        FirebaseUser user = mAuth.getCurrentUser();
+
+        if (user == null && googleSignInAccount == null) {
+            Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
+            startActivity(intent);
+            finish();
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,9 +49,9 @@ public class ProfileActivity extends AppCompatActivity {
         image = findViewById(R.id.imageUser);
         btn_logout = findViewById(R.id.logout);
 
-        GoogleSignInAccount signInAccount = GoogleSignIn.getLastSignedInAccount(this);
-        if(signInAccount != null){
-            infoUser.setText(signInAccount.getDisplayName());
+        if(googleSignInAccount != null){
+            // If the signed in user is from a Gmail account
+            infoUser.setText(googleSignInAccount.getDisplayName());
 
 //            String photo = String.valueOf(signInAccount.getPhotoUrl());
 //            Picasso.with(getApplicationContext()).load(photo).into(image);
@@ -41,12 +61,21 @@ public class ProfileActivity extends AppCompatActivity {
         btn_logout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                FirebaseAuth.getInstance().signOut();
-                Intent intent = new Intent(getApplicationContext(),LoginActivity.class);
-                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                startActivity(intent);
-                finish();
+                signOut();
             }
         });
+    }
+
+    private void signOut() {
+        mAuth.signOut();
+        GoogleSignIn.getClient(
+                getApplicationContext(),
+                new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN).build()
+        ).signOut();
+
+        Intent intent = new Intent(getApplicationContext(),LoginActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        startActivity(intent);
+        finish();
     }
 }
