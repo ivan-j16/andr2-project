@@ -11,24 +11,23 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 
 public class RegisterActivity extends AppCompatActivity {
 
     private FirebaseAuth mAuth;
     private ProgressBar progressBar;
     private Button btnRegister;
-    private EditText nameField;
+    private TextView textGoBackToLogin;
     private EditText emailField;
     private EditText passwordField;
-    private DatabaseReference mDatabase;
+    private EditText confirmPasswordField;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,62 +35,73 @@ public class RegisterActivity extends AppCompatActivity {
         setContentView(R.layout.activity_register);
 
         mAuth = FirebaseAuth.getInstance();
-        mDatabase = FirebaseDatabase.getInstance().getReference().child("users");
 
         progressBar = findViewById(R.id.progress_circular);
-        nameField = findViewById(R.id.textName);
         emailField = findViewById(R.id.textEmail);
         passwordField = findViewById(R.id.textPwrd);
+        confirmPasswordField = findViewById(R.id.textConfirmPwrd);
 
-        btnRegister = findViewById(R.id.register);
+        btnRegister = findViewById(R.id.registerBtn);
         btnRegister.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 register();
             }
         });
-    }
 
-    private void register() {
-        final String name = nameField.getText().toString().trim();
-        final String email = emailField.getText().toString().trim();
-        final String password = passwordField.getText().toString().trim();
-
-        if (!TextUtils.isEmpty(name) && !TextUtils.isEmpty(email) && !TextUtils.isEmpty(password)) {
-            progressBar.setVisibility(View.VISIBLE);
-            mAuth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
-                @Override
-                public void onComplete(@NonNull Task<AuthResult> task) {
-                    if (task.isSuccessful()) {
-                        String user_id = mAuth.getCurrentUser().getUid();
-                        DatabaseReference current_user_db = mDatabase.child(user_id);
-
-                        current_user_db.child("name").setValue(name);
-                        current_user_db.child("image").setValue("default");
-
-                        progressBar.setVisibility(View.INVISIBLE);
-
-                        Intent intent = new Intent(getApplicationContext(), ProfileActivity.class);
-                        // Clear the activity stack so that the user cannot go back to the login screen
-                        // once he is logged in
-                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                        startActivity(intent);
-                        finish();
-                    }
-                     else {
-                        progressBar.setVisibility(View.INVISIBLE);
-
-                        if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-                            Toast.makeText(getApplicationContext(), "Incorrect email.",
-                                    Toast.LENGTH_SHORT).show();
-                        }
-                        else {
-                            Toast.makeText(getApplicationContext(), "Auth failure. Password may be too weak.",
-                                    Toast.LENGTH_SHORT).show();
-                        }
-                    }
+        textGoBackToLogin = findViewById(R.id.textGoBackToLogin);
+        textGoBackToLogin.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                startActivity(intent);
+                finish();
             }
         });
     }
+
+    private void register() {
+        final String email = emailField.getText().toString().trim();
+        final String password = passwordField.getText().toString().trim();
+        final String passwordConfirm = confirmPasswordField.getText().toString().trim();
+
+        if (!TextUtils.isEmpty(email) && !TextUtils.isEmpty(password) && Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            if (password.equals(passwordConfirm)) {
+                progressBar.setVisibility(View.VISIBLE);
+                // Register
+                mAuth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+                        if (task.isSuccessful()) {
+                            progressBar.setVisibility(View.INVISIBLE);
+                            sendToMainActivity();
+                        }
+                        else {
+                            progressBar.setVisibility(View.INVISIBLE);
+                            String errorMessage = task.getException().getMessage();
+                            Toast.makeText(getApplicationContext(), "Error: " + errorMessage,
+                                    Toast.LENGTH_LONG).show();
+                        }
+
+                    }
+                });
+            }
+            else {
+                Toast.makeText(getApplicationContext(), "Passwords do not match",
+                        Toast.LENGTH_SHORT).show();
+            }
+        }
+        else {
+            Toast.makeText(getApplicationContext(), "Non-filled in fields or incorrect email.",
+                    Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void sendToMainActivity() {
+        Intent intent = new Intent(getApplicationContext(), ProfileActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        startActivity(intent);
+        finish();
     }
 }

@@ -1,69 +1,244 @@
 package com.example.andr2app;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.text.TextUtils;
+import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.TextView;
+import android.widget.ProgressBar;
+import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.squareup.picasso.Picasso;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
+import com.theartofdev.edmodo.cropper.CropImage;
+import com.theartofdev.edmodo.cropper.CropImageView;
+
+import java.util.HashMap;
+import java.util.Map;
 
 
 public class ProfileActivity extends AppCompatActivity {
-    private TextView infoUser;
-    private ImageView image;
-    private Button btn_logout;
-    private FirebaseAuth mAuth;
+    private ImageView profileImage;
+    private EditText profileName;
+    private Button btnLogout;
+    private Button btnCancelEdit;
+    private Button btnEditProfile;
     private GoogleSignInAccount googleSignInAccount;
+    private Uri mainImageURI = null;
+    private ProgressBar progressBar;
+    private String user_id;
 
-    @Override
-    protected void onStart() {
-        super.onStart();
+    private FirebaseAuth mAuth;
+    private StorageReference storageReference;
+    private FirebaseFirestore firebaseFirestore;
 
-        mAuth = FirebaseAuth.getInstance();
-        googleSignInAccount = GoogleSignIn.getLastSignedInAccount(this);
-
-        FirebaseUser user = mAuth.getCurrentUser();
-
-        if (user == null && googleSignInAccount == null) {
-            Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
-            startActivity(intent);
-            finish();
-        }
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
 
-        infoUser = findViewById(R.id.infoUser);
-        image = findViewById(R.id.imageUser);
-        btn_logout = findViewById(R.id.logout);
+        mAuth = FirebaseAuth.getInstance();
+        profileImage = findViewById(R.id.imageUser);
+        btnLogout = findViewById(R.id.logoutBtn);
+        btnEditProfile = findViewById(R.id.editBtn);
+        btnCancelEdit = findViewById(R.id.cancelBtn);
+        profileName = findViewById(R.id.textName);
+        progressBar = findViewById(R.id.progress_circular);
 
-        if(googleSignInAccount != null){
-            // If the signed in user is from a Gmail account
-            infoUser.setText(googleSignInAccount.getDisplayName());
+        storageReference = FirebaseStorage.getInstance().getReference();
+        firebaseFirestore = FirebaseFirestore.getInstance();
 
-//            String photo = String.valueOf(signInAccount.getPhotoUrl());
-//            Picasso.with(getApplicationContext()).load(photo).into(image);
-//            Picasso.
-        }
+        user_id = mAuth.getCurrentUser().getUid();
 
-        btn_logout.setOnClickListener(new View.OnClickListener() {
+        getAccountInformation();
+
+        profileImage.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // If build is later or equal to marshmallow, permission are required
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    if (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                        Toast.makeText(getApplicationContext(), "Permission Denied", Toast.LENGTH_SHORT).show();
+                        ActivityCompat.requestPermissions(ProfileActivity.this, new String[] {Manifest.permission.READ_EXTERNAL_STORAGE}, 1);
+                    }
+                    else {
+                        startImagePicker();
+                    }
+                }
+                else {
+                    startImagePicker();
+                }
+            }
+        });
+
+        btnLogout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 signOut();
             }
         });
+
+        btnCancelEdit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                sentToMainActivity();
+            }
+        });
+
+        btnEditProfile.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                editAccount();
+            }
+        });
+    }
+
+
+    private void getAccountInformation() {
+        // Get username and profile image from firestore
+        progressBar.setVisibility(View.VISIBLE);
+        firebaseFirestore.collection("Users").document(user_id).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                progressBar.setVisibility(View.INVISIBLE);
+                if (task.isSuccessful()) {
+                    if (task.getResult().exists()) {
+                        String name = task.getResult().getString("name");
+                        String image = task.getResult().getString("image");
+
+                        profileName.setText(name);
+                        Glide.with(ProfileActivity.this).load(image).into(profileImage);
+
+                        // Todo: Set mainImageURI to be equal to the image
+
+                    }
+                    else {
+                        Toast.makeText(getApplicationContext(), "Data does not exist",
+                                Toast.LENGTH_SHORT).show();
+                    }
+                }
+                else {
+                    String error = task.getException().getMessage();
+                    Toast.makeText(getApplicationContext(), "Firestore Retrieve error: " + error,
+                            Toast.LENGTH_LONG).show();
+                }
+            }
+        });
+    }
+
+    private void editAccount() {
+        final String username = profileName.getText().toString();
+        if (!TextUtils.isEmpty(username) && mainImageURI != null) {
+
+            progressBar.setVisibility(View.VISIBLE);
+
+            final StorageReference image_path = storageReference.child("profile_images")
+                    .child(user_id + ".jpg");
+
+            image_path.putFile(mainImageURI).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
+                @Override
+                public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
+
+                    if (task.isSuccessful()) {
+                        Toast.makeText(getApplicationContext(), "Image is uploaded." ,
+                                Toast.LENGTH_SHORT).show();
+
+                        image_path.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                            @Override
+                            public void onSuccess(Uri uri) {
+                                String downloadUri = uri.toString();
+
+                                Map<String, String> userMap = new HashMap<>();
+                                userMap.put("name", username);
+                                userMap.put("image", downloadUri);
+
+                                firebaseFirestore.collection("Users").document(user_id).set(userMap).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                    @Override
+                                    public void onComplete(@NonNull Task<Void> task) {
+                                        progressBar.setVisibility(View.INVISIBLE);
+                                        if (task.isSuccessful()) {
+                                            Toast toast = Toast.makeText(getApplicationContext(), "User settings updated",
+                                                    Toast.LENGTH_LONG);
+                                            toast.setGravity(Gravity.TOP|Gravity.CENTER_HORIZONTAL, 0, 0);
+                                            toast.show();
+
+
+                                            sentToMainActivity();
+                                        }
+                                        else {
+                                            String error = task.getException().getMessage();
+                                            Toast.makeText(getApplicationContext(), "Firestore error: " + error,
+                                                    Toast.LENGTH_LONG).show();
+                                        }
+                                    }
+                                });
+
+                            }
+                        });
+                    }
+                    else {
+                        progressBar.setVisibility(View.INVISIBLE);
+                        String error = task.getException().getLocalizedMessage();
+                        Toast.makeText(getApplicationContext(), "Image error: " + error,
+                                Toast.LENGTH_LONG).show();
+                    }
+                }
+            });
+
+        }
+        else {
+            Toast.makeText(getApplicationContext(), "Name and/or profile image missing.",
+                    Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void startImagePicker() {
+        CropImage.activity()
+                .setGuidelines(CropImageView.Guidelines.ON)
+                .setAspectRatio(1, 1)
+                .start(ProfileActivity.this);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE) {
+            CropImage.ActivityResult result = CropImage.getActivityResult(data);
+            if (resultCode == RESULT_OK) {
+                mainImageURI = result.getUri();
+                profileImage.setImageURI(mainImageURI);
+
+            } else if (resultCode == CropImage.CROP_IMAGE_ACTIVITY_RESULT_ERROR_CODE) {
+                Exception error = result.getError();
+                Toast.makeText(getApplicationContext(), "Error: " + error.getMessage(),
+                        Toast.LENGTH_SHORT).show();
+            }
+        }
     }
 
     private void signOut() {
@@ -74,6 +249,13 @@ public class ProfileActivity extends AppCompatActivity {
         ).signOut();
 
         Intent intent = new Intent(getApplicationContext(),LoginActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        startActivity(intent);
+        finish();
+    }
+
+    private void sentToMainActivity() {
+        Intent intent = new Intent(getApplicationContext(), MainActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         startActivity(intent);
         finish();

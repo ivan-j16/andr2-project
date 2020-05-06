@@ -6,35 +6,73 @@
     android:layout_height="match_parent"
     tools:context=".ProfileActivity">
 
-    <ImageView
+    <de.hdodenhof.circleimageview.CircleImageView
         android:id="@+id/imageUser"
         android:layout_width="150dp"
         android:layout_height="150dp"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="60dp"
+        android:layout_marginTop="140dp"
         android:src="@drawable/ic_map_black_24dp"
         android:contentDescription="@string/app_name"/>
 
-    <TextView
-        android:id="@+id/infoUser"
+    <ProgressBar
+        android:visibility="invisible"
+        android:id="@+id/progress_circular"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/imageUser"
+        android:layout_marginTop="30dp"
+        android:layout_centerHorizontal="true"/>
+
+
+    <EditText
+        android:id="@+id/textName"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/app_name"
+        android:layout_below="@id/progress_circular"
+        android:layout_marginTop="40dp"
+        android:gravity="start"
+        android:hint="Name..."
         android:textColor="@android:color/white"
-        android:textSize="16sp"
-        android:layout_below="@id/imageUser"
-        android:gravity="center"/>
+        android:textSize="18sp" />
+
 
     <Button
-        android:id="@+id/logout"
+        android:id="@+id/logoutBtn"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:layout_marginBottom="60dp"
         android:layout_marginLeft="26dp"
         android:layout_marginRight="26dp"
-        android:text="@string/logout"
+        android:layout_marginBottom="39dp"
         android:background="@drawable/round_bg"
-        android:drawableStart="@drawable/ic_logout_black_large_48dp"/>
+        android:drawableStart="@drawable/ic_logout_black_large_48dp"
+        android:drawablePadding="2dip"
+        android:paddingLeft="10dip"
+        android:paddingRight="55dip"
+        android:text="@string/logout" />
+
+    <Button
+        android:id="@+id/editBtn"
+        android:layout_width="136dp"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginLeft="26dp"
+        android:layout_marginRight="26dp"
+        android:layout_marginBottom="113dp"
+        android:background="@drawable/round_bg_red"
+        android:text="@string/edit_profile_text"
+        android:textColor="@android:color/white" />
+
+    <Button
+        android:id="@+id/cancelBtn"
+        android:layout_width="136dp"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginLeft="240dp"
+        android:layout_marginRight="26dp"
+        android:layout_marginBottom="113dp"
+        android:background="@drawable/round_bg"
+        android:text="@string/cancel_edit_profile_text" />
 
 </RelativeLayout>
