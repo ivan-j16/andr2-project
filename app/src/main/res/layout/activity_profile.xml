@@ -11,7 +11,7 @@
         android:layout_width="150dp"
         android:layout_height="150dp"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="140dp"
+        android:layout_marginTop="70dp"
         android:src="@drawable/ic_map_black_24dp"
         android:contentDescription="@string/app_name"/>
 
@@ -36,6 +36,29 @@
         android:textColor="@android:color/white"
         android:textSize="18sp" />
 
+    <com.hbb20.CountryCodePicker
+        android:id="@+id/ccp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="30dp"
+        android:textColor="@android:color/white"
+        android:layout_below="@id/textName"
+        app:ccp_countryPreference="NL,BG"
+        app:ccp_defaultNameCode="BG"
+        app:ccp_contentColor="@android:color/white"
+        />
+
+    <EditText
+        android:id="@+id/editText_carrierNumber"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/textName"
+        android:textColor="@android:color/white"
+        android:layout_marginTop="27dp"
+        android:layout_toRightOf="@id/ccp"
+        android:hint="Phone..."
+        android:inputType="phone"
+        android:singleLine="true" />
 
     <Button
         android:id="@+id/logoutBtn"

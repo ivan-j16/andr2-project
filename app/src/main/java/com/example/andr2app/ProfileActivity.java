@@ -34,6 +34,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
+import com.hbb20.CountryCodePicker;
 import com.theartofdev.edmodo.cropper.CropImage;
 import com.theartofdev.edmodo.cropper.CropImageView;
 
@@ -47,11 +48,12 @@ public class ProfileActivity extends AppCompatActivity {
     private Button btnLogout;
     private Button btnCancelEdit;
     private Button btnEditProfile;
-    private GoogleSignInAccount googleSignInAccount;
     private Uri mainImageURI = null;
     private ProgressBar progressBar;
     private String user_id;
     private boolean imageChanged = false;
+    private CountryCodePicker ccp;
+    private EditText editTextCarrierNumber;
 
     private FirebaseAuth mAuth;
     private StorageReference storageReference;
@@ -70,6 +72,10 @@ public class ProfileActivity extends AppCompatActivity {
         btnCancelEdit = findViewById(R.id.cancelBtn);
         profileName = findViewById(R.id.textName);
         progressBar = findViewById(R.id.progress_circular);
+        ccp = findViewById(R.id.ccp);
+        editTextCarrierNumber = findViewById(R.id.editText_carrierNumber);
+
+        ccp.registerCarrierNumberEditText(editTextCarrierNumber);
 
         storageReference = FirebaseStorage.getInstance().getReference();
         firebaseFirestore = FirebaseFirestore.getInstance();
@@ -135,10 +141,14 @@ public class ProfileActivity extends AppCompatActivity {
                     if (task.getResult().exists()) {
                         String name = task.getResult().getString("name");
                         String image = task.getResult().getString("image");
+                        String phone = task.getResult().getString("phone");
 
                         profileName.setText(name);
+                        editTextCarrierNumber.setText(phone);
+
                         Glide.with(ProfileActivity.this).load(image).into(profileImage);
 
+                        // Set the image to the loaded one from the database
                         mainImageURI = Uri.parse(image);
 
                     }
@@ -162,6 +172,8 @@ public class ProfileActivity extends AppCompatActivity {
 
     private void editAccount() {
         final String username = profileName.getText().toString();
+        final String phoneNumber = ccp.getFullNumberWithPlus();
+
         progressBar.setVisibility(View.VISIBLE);
 
         if (imageChanged) {
@@ -178,7 +190,7 @@ public class ProfileActivity extends AppCompatActivity {
                             image_path.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
                                 @Override
                                 public void onSuccess(Uri uri) {
-                                    storeFirestoreData(uri, username);
+                                    storeFirestoreData(uri, username, phoneNumber);
                                 }
                             });
                         }
@@ -203,11 +215,11 @@ public class ProfileActivity extends AppCompatActivity {
             }
         }
         else {
-            storeFirestoreData(null, username);
+            storeFirestoreData(null, username, phoneNumber);
         }
     }
 
-    private void storeFirestoreData(Uri uri, String username) {
+    private void storeFirestoreData(Uri uri, String username, String phoneNumber) {
 
         String downloadUri;
         if (uri == null) {
@@ -220,6 +232,7 @@ public class ProfileActivity extends AppCompatActivity {
         Map<String, String> userMap = new HashMap<>();
         userMap.put("name", username);
         userMap.put("image", downloadUri);
+        userMap.put("phone", phoneNumber);
 
         firebaseFirestore.collection("Users").document(user_id).set(userMap).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
