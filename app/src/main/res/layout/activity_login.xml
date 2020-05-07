@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".LoginActivity">
+
+    <ImageView
+        android:id="@+id/image"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="60dp"
+        android:src="@drawable/ic_map_black_24dp"
+        android:contentDescription="@string/app_name"/>
+
+    <TextView
+        android:id="@+id/text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/app_name"
+        android:textColor="@android:color/white"
+        android:textSize="16sp"
+        android:layout_below="@id/image"
+        android:gravity="center"/>
+
+    <ProgressBar
+        android:visibility="invisible"
+        android:id="@+id/progress_circular"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/text"
+        android:layout_marginTop="20dp"
+        android:layout_centerHorizontal="true"/>
+
+    <EditText
+        android:id="@+id/textPwrd"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/textEmail"
+        android:layout_marginTop="23dp"
+        android:gravity="start"
+        android:hint="Password..."
+        android:inputType="textPassword"
+        android:textColor="@android:color/white"
+        android:textSize="18sp"
+        android:visibility="invisible" />
+
+    <EditText
+        android:id="@+id/textEmail"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/text"
+        android:layout_marginTop="91dp"
+        android:gravity="start"
+        android:hint="Email..."
+        android:textColor="@android:color/white"
+        android:textSize="18sp"
+        android:visibility="invisible" />
+
+    <TextView
+        android:id="@+id/textRegister"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="80dp"
+        android:layout_alignParentBottom="true"
+        android:gravity="center"
+        android:text="@string/text_register"
+        android:textColor="@android:color/white"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:visibility="invisible" />
+
+    <Button
+        android:id="@+id/loginEmailPassword"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginLeft="26dp"
+        android:layout_marginRight="26dp"
+        android:layout_marginBottom="126dp"
+        android:background="@drawable/round_bg_red"
+        android:drawableStart="@drawable/fui_ic_mail_white_24dp"
+        android:drawablePadding="2dip"
+        android:paddingLeft="30dip"
+        android:paddingRight="26dip"
+        android:text="@string/login_email_pass"
+        android:textColor="@android:color/white"/>
+
+    <Button
+        android:visibility="invisible"
+        android:id="@+id/finalizeEmailPasswordLogin"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginLeft="26dp"
+        android:layout_marginRight="26dp"
+        android:layout_marginBottom="126dp"
+        android:background="@drawable/round_bg"
+        android:text="@string/finalize_login_email_pass"
+        android:textColor="@android:color/black"/>
+
+    <Button
+        android:id="@+id/loginGoogle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="60dp"
+        android:layout_marginLeft="26dp"
+        android:layout_marginRight="26dp"
+        android:text="@string/login_google"
+        android:drawableStart="@drawable/fui_ic_googleg_color_24dp"
+        android:drawablePadding="2dip"
+        android:paddingLeft="30dip"
+        android:paddingRight="26dip"
+        android:background="@drawable/round_bg"/>
+</RelativeLayout>
