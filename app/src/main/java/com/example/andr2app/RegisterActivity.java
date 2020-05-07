@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Patterns;
+import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -80,21 +81,27 @@ public class RegisterActivity extends AppCompatActivity {
                         else {
                             progressBar.setVisibility(View.INVISIBLE);
                             String errorMessage = task.getException().getMessage();
-                            Toast.makeText(getApplicationContext(), "Error: " + errorMessage,
-                                    Toast.LENGTH_LONG).show();
+                            Toast toast = Toast.makeText(getApplicationContext(), "Error: " + errorMessage,
+                                    Toast.LENGTH_LONG);
+                            toast.setGravity(Gravity.TOP|Gravity.CENTER_HORIZONTAL, 0, 0);
+                            toast.show();
                         }
 
                     }
                 });
             }
             else {
-                Toast.makeText(getApplicationContext(), "Passwords do not match",
-                        Toast.LENGTH_SHORT).show();
+                Toast toast = Toast.makeText(getApplicationContext(), "Passwords do not match",
+                        Toast.LENGTH_SHORT);
+                toast.setGravity(Gravity.TOP|Gravity.CENTER_HORIZONTAL, 0, 0);
+                toast.show();
             }
         }
         else {
-            Toast.makeText(getApplicationContext(), "Non-filled in fields or incorrect email.",
-                    Toast.LENGTH_SHORT).show();
+            Toast toast = Toast.makeText(getApplicationContext(), "Non-filled in fields or incorrect email",
+                    Toast.LENGTH_SHORT);
+            toast.setGravity(Gravity.TOP|Gravity.CENTER_HORIZONTAL, 0, 0);
+            toast.show();
         }
     }
 

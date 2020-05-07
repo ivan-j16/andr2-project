@@ -51,6 +51,7 @@ public class ProfileActivity extends AppCompatActivity {
     private Uri mainImageURI = null;
     private ProgressBar progressBar;
     private String user_id;
+    private boolean imageChanged = false;
 
     private FirebaseAuth mAuth;
     private StorageReference storageReference;
@@ -72,7 +73,6 @@ public class ProfileActivity extends AppCompatActivity {
 
         storageReference = FirebaseStorage.getInstance().getReference();
         firebaseFirestore = FirebaseFirestore.getInstance();
-
         user_id = mAuth.getCurrentUser().getUid();
 
         getAccountInformation();
@@ -83,7 +83,12 @@ public class ProfileActivity extends AppCompatActivity {
                 // If build is later or equal to marshmallow, permission are required
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                     if (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-                        Toast.makeText(getApplicationContext(), "Permission Denied", Toast.LENGTH_SHORT).show();
+
+                        Toast toast = Toast.makeText(getApplicationContext(), "Permission Denied",
+                                Toast.LENGTH_SHORT);
+                        toast.setGravity(Gravity.TOP|Gravity.CENTER_HORIZONTAL, 0, 0);
+                        toast.show();
+
                         ActivityCompat.requestPermissions(ProfileActivity.this, new String[] {Manifest.permission.READ_EXTERNAL_STORAGE}, 1);
                     }
                     else {
@@ -134,18 +139,22 @@ public class ProfileActivity extends AppCompatActivity {
                         profileName.setText(name);
                         Glide.with(ProfileActivity.this).load(image).into(profileImage);
 
-                        // Todo: Set mainImageURI to be equal to the image
+                        mainImageURI = Uri.parse(image);
 
                     }
                     else {
-                        Toast.makeText(getApplicationContext(), "Data does not exist",
-                                Toast.LENGTH_SHORT).show();
+                        Toast toast = Toast.makeText(getApplicationContext(), "Data does not exist",
+                                Toast.LENGTH_SHORT);
+                        toast.setGravity(Gravity.TOP|Gravity.CENTER_HORIZONTAL, 0, 0);
+                        toast.show();
                     }
                 }
                 else {
                     String error = task.getException().getMessage();
-                    Toast.makeText(getApplicationContext(), "Firestore Retrieve error: " + error,
-                            Toast.LENGTH_LONG).show();
+                    Toast toast = Toast.makeText(getApplicationContext(), "Firestore retrieve error: " + error,
+                            Toast.LENGTH_LONG);
+                    toast.setGravity(Gravity.TOP|Gravity.CENTER_HORIZONTAL, 0, 0);
+                    toast.show();
                 }
             }
         });
@@ -153,68 +162,87 @@ public class ProfileActivity extends AppCompatActivity {
 
     private void editAccount() {
         final String username = profileName.getText().toString();
-        if (!TextUtils.isEmpty(username) && mainImageURI != null) {
+        progressBar.setVisibility(View.VISIBLE);
 
-            progressBar.setVisibility(View.VISIBLE);
-
-            final StorageReference image_path = storageReference.child("profile_images")
-                    .child(user_id + ".jpg");
-
-            image_path.putFile(mainImageURI).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
-                @Override
-                public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
-
-                    if (task.isSuccessful()) {
-                        Toast.makeText(getApplicationContext(), "Image is uploaded." ,
-                                Toast.LENGTH_SHORT).show();
-
-                        image_path.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
-                            @Override
-                            public void onSuccess(Uri uri) {
-                                String downloadUri = uri.toString();
-
-                                Map<String, String> userMap = new HashMap<>();
-                                userMap.put("name", username);
-                                userMap.put("image", downloadUri);
-
-                                firebaseFirestore.collection("Users").document(user_id).set(userMap).addOnCompleteListener(new OnCompleteListener<Void>() {
-                                    @Override
-                                    public void onComplete(@NonNull Task<Void> task) {
-                                        progressBar.setVisibility(View.INVISIBLE);
-                                        if (task.isSuccessful()) {
-                                            Toast toast = Toast.makeText(getApplicationContext(), "User settings updated",
-                                                    Toast.LENGTH_LONG);
-                                            toast.setGravity(Gravity.TOP|Gravity.CENTER_HORIZONTAL, 0, 0);
-                                            toast.show();
+        if (imageChanged) {
+            if (!TextUtils.isEmpty(username) && mainImageURI != null) {
 
 
-                                            sentToMainActivity();
-                                        }
-                                        else {
-                                            String error = task.getException().getMessage();
-                                            Toast.makeText(getApplicationContext(), "Firestore error: " + error,
-                                                    Toast.LENGTH_LONG).show();
-                                        }
-                                    }
-                                });
+                final StorageReference image_path = storageReference.child("profile_images")
+                        .child(user_id + ".jpg");
 
-                            }
-                        });
+                image_path.putFile(mainImageURI).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
+                        if (task.isSuccessful()) {
+                            image_path.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                                @Override
+                                public void onSuccess(Uri uri) {
+                                    storeFirestoreData(uri, username);
+                                }
+                            });
+                        }
+                        else {
+                            progressBar.setVisibility(View.INVISIBLE);
+
+                            String error = task.getException().getLocalizedMessage();
+                            Toast toast = Toast.makeText(getApplicationContext(), "Image error: " + error,
+                                    Toast.LENGTH_LONG);
+                            toast.setGravity(Gravity.TOP|Gravity.CENTER_HORIZONTAL, 0, 0);
+                            toast.show();
+                        }
                     }
-                    else {
-                        progressBar.setVisibility(View.INVISIBLE);
-                        String error = task.getException().getLocalizedMessage();
-                        Toast.makeText(getApplicationContext(), "Image error: " + error,
-                                Toast.LENGTH_LONG).show();
-                    }
-                }
-            });
+                });
 
+            }
+            else {
+                Toast toast = Toast.makeText(getApplicationContext(), "Name and/or profile image missing.",
+                        Toast.LENGTH_SHORT);
+                toast.setGravity(Gravity.TOP|Gravity.CENTER_HORIZONTAL, 0, 0);
+                toast.show();
+            }
         }
         else {
-            Toast.makeText(getApplicationContext(), "Name and/or profile image missing.",
-                    Toast.LENGTH_SHORT).show();
+            storeFirestoreData(null, username);
         }
+    }
+
+    private void storeFirestoreData(Uri uri, String username) {
+
+        String downloadUri;
+        if (uri == null) {
+            downloadUri = mainImageURI.toString();
+        }
+        else{
+            downloadUri = uri.toString();
+        }
+
+        Map<String, String> userMap = new HashMap<>();
+        userMap.put("name", username);
+        userMap.put("image", downloadUri);
+
+        firebaseFirestore.collection("Users").document(user_id).set(userMap).addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                progressBar.setVisibility(View.INVISIBLE);
+                if (task.isSuccessful()) {
+                    Toast toast = Toast.makeText(getApplicationContext(), "User settings updated",
+                            Toast.LENGTH_LONG);
+                    toast.setGravity(Gravity.TOP|Gravity.CENTER_HORIZONTAL, 0, 0);
+                    toast.show();
+
+
+                    sentToMainActivity();
+                }
+                else {
+                    String error = task.getException().getMessage();
+                    Toast toast = Toast.makeText(getApplicationContext(), "Firestore error: " + error,
+                            Toast.LENGTH_LONG);
+                    toast.setGravity(Gravity.TOP|Gravity.CENTER_HORIZONTAL, 0, 0);
+                    toast.show();
+                }
+            }
+        });
     }
 
     private void startImagePicker() {
@@ -232,11 +260,14 @@ public class ProfileActivity extends AppCompatActivity {
             if (resultCode == RESULT_OK) {
                 mainImageURI = result.getUri();
                 profileImage.setImageURI(mainImageURI);
+                imageChanged = true;
 
             } else if (resultCode == CropImage.CROP_IMAGE_ACTIVITY_RESULT_ERROR_CODE) {
                 Exception error = result.getError();
-                Toast.makeText(getApplicationContext(), "Error: " + error.getMessage(),
-                        Toast.LENGTH_SHORT).show();
+                Toast toast = Toast.makeText(getApplicationContext(), "Error: " + error.getMessage(),
+                        Toast.LENGTH_SHORT);
+                toast.setGravity(Gravity.TOP|Gravity.CENTER_HORIZONTAL, 0, 0);
+                toast.show();
             }
         }
     }

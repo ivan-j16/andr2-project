@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -130,15 +131,19 @@ public class LoginActivity extends AppCompatActivity {
                     else {
                         progressBar.setVisibility(View.INVISIBLE);
                         String errorMessage = task.getException().getMessage();
-                        Toast.makeText(getApplicationContext(), "Error: " + errorMessage,
-                                Toast.LENGTH_LONG).show();
+                        Toast toast = Toast.makeText(getApplicationContext(), "Error: " + errorMessage,
+                                Toast.LENGTH_LONG);
+                        toast.setGravity(Gravity.TOP|Gravity.CENTER_HORIZONTAL, 0, 0);
+                        toast.show();
                     }
                 }
             });
         }
         else {
-            Toast.makeText(getApplicationContext(), "Incorrect password or email.",
-                    Toast.LENGTH_SHORT).show();
+            Toast toast = Toast.makeText(getApplicationContext(), "Incorrect password and/or email",
+                    Toast.LENGTH_SHORT);
+            toast.setGravity(Gravity.TOP|Gravity.CENTER_HORIZONTAL, 0, 0);
+            toast.show();
         }
     }
 
@@ -162,7 +167,10 @@ public class LoginActivity extends AppCompatActivity {
                 firebaseAuthWithGoogle(account);
             } catch (ApiException e) {
                 // Google Sign In failed, update UI appropriately
-                Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                Toast toast = Toast.makeText(this, e.getMessage(),
+                        Toast.LENGTH_SHORT);
+                toast.setGravity(Gravity.TOP|Gravity.CENTER_HORIZONTAL, 0, 0);
+                toast.show();
             }
         }
     }
@@ -180,8 +188,10 @@ public class LoginActivity extends AppCompatActivity {
                         } else {
                             progressBar.setVisibility(View.INVISIBLE);
                             String errorMessage = task.getException().getMessage();
-                            Toast.makeText(getApplicationContext(), "Error: " + errorMessage,
-                                    Toast.LENGTH_LONG).show();
+                            Toast toast = Toast.makeText(getApplicationContext(), "Error: " + errorMessage,
+                                    Toast.LENGTH_LONG);
+                            toast.setGravity(Gravity.TOP|Gravity.CENTER_HORIZONTAL, 0, 0);
+                            toast.show();
                         }
                     }
                 });
