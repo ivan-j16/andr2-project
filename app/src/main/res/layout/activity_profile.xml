@@ -4,14 +4,26 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ProfileActivity">
+    tools:context=".ProfileActivity"
+    android:background="@android:color/white">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/main_toolbar"
+        android:layout_width="413dp"
+        android:layout_height="61dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:background="@color/colorPrimary"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light"/>
 
     <de.hdodenhof.circleimageview.CircleImageView
         android:id="@+id/imageUser"
         android:layout_width="150dp"
         android:layout_height="150dp"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="70dp"
+        android:layout_marginTop="90dp"
         android:src="@drawable/ic_map_black_24dp"
         android:contentDescription="@string/app_name"/>
 
@@ -33,7 +45,7 @@
         android:layout_marginTop="40dp"
         android:gravity="start"
         android:hint="Name..."
-        android:textColor="@android:color/white"
+        android:textColor="@android:color/black"
         android:textSize="18sp" />
 
     <com.hbb20.CountryCodePicker
@@ -41,11 +53,11 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="30dp"
-        android:textColor="@android:color/white"
+        android:textColor="@android:color/black"
         android:layout_below="@id/textName"
         app:ccp_countryPreference="NL,BG"
         app:ccp_defaultNameCode="BG"
-        app:ccp_contentColor="@android:color/white"
+        app:ccp_contentColor="@android:color/black"
         />
 
     <EditText
@@ -53,27 +65,12 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/textName"
-        android:textColor="@android:color/white"
+        android:textColor="@android:color/black"
         android:layout_marginTop="27dp"
         android:layout_toRightOf="@id/ccp"
         android:hint="Phone..."
         android:inputType="phone"
         android:singleLine="true" />
-
-    <Button
-        android:id="@+id/logoutBtn"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_marginLeft="26dp"
-        android:layout_marginRight="26dp"
-        android:layout_marginBottom="39dp"
-        android:background="@drawable/round_bg"
-        android:drawableStart="@drawable/ic_logout_black_large_48dp"
-        android:drawablePadding="2dip"
-        android:paddingLeft="10dip"
-        android:paddingRight="55dip"
-        android:text="@string/logout" />
 
     <Button
         android:id="@+id/editBtn"
@@ -95,7 +92,7 @@
         android:layout_marginLeft="240dp"
         android:layout_marginRight="26dp"
         android:layout_marginBottom="113dp"
-        android:background="@drawable/round_bg"
+        android:background="@drawable/round_bg_gray"
         android:text="@string/cancel_edit_profile_text" />
 
 </RelativeLayout>

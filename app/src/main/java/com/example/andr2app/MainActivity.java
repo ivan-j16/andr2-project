@@ -3,6 +3,7 @@ package com.example.andr2app;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
@@ -14,10 +15,11 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
-import android.os.Looper;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
+import android.widget.Toast;
 
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
@@ -34,14 +36,16 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
 
     private FirebaseAuth mAuth;
-    private Button btnLogout;
     private GoogleMap mMap;
+    private Toolbar mainToolbar;
+    private FloatingActionButton addItemBtn;
 
     private FusedLocationProviderClient mFusedLocationProviderClient;
     private Boolean mLocationPermissionsGranted = false;
@@ -63,13 +67,21 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             finish();
         }
 
-        btnLogout = findViewById(R.id.logoutBtn2);
-        btnLogout.setOnClickListener(new View.OnClickListener() {
+        mainToolbar = findViewById(R.id.main_toolbar);
+        mainToolbar.bringToFront();
+        setSupportActionBar(mainToolbar);
+        getSupportActionBar().setTitle("Better OLX");
+
+        addItemBtn = findViewById(R.id.add_item_btn);
+        addItemBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                signOut();
+               Intent addNewItemIntent = new Intent(getApplicationContext(), AddItemActivity.class);
+               startActivity(addNewItemIntent);
             }
         });
+
+
         GetLocationPermission();
     }
 
@@ -187,6 +199,33 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             mMap.setMyLocationEnabled(true);
             mMap.getUiSettings().setMyLocationButtonEnabled(false);
 
+        }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.main_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.nav_logout:
+                signOut();
+                return true;
+            case R.id.nav_profile:
+                Intent profileIntent = new Intent(getApplicationContext(), ProfileActivity.class);
+                startActivity(profileIntent);
+                return true;
+            case R.id.nav_items:
+                Intent itemsIntent = new Intent(getApplicationContext(), ItemActivity.class);
+                startActivity(itemsIntent);
+                return true;
+            default:
+                Toast.makeText(getApplicationContext(), "Navigation error",
+                        Toast.LENGTH_SHORT).show();
+                return false;
         }
     }
 
