@@ -3,6 +3,7 @@ package com.example.andr2app;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
@@ -45,7 +46,6 @@ import java.util.Map;
 public class ProfileActivity extends AppCompatActivity {
     private ImageView profileImage;
     private EditText profileName;
-    private Button btnLogout;
     private Button btnCancelEdit;
     private Button btnEditProfile;
     private Uri mainImageURI = null;
@@ -54,6 +54,7 @@ public class ProfileActivity extends AppCompatActivity {
     private boolean imageChanged = false;
     private CountryCodePicker ccp;
     private EditText editTextCarrierNumber;
+    private Toolbar mainToolbar;
 
     private FirebaseAuth mAuth;
     private StorageReference storageReference;
@@ -67,7 +68,6 @@ public class ProfileActivity extends AppCompatActivity {
 
         mAuth = FirebaseAuth.getInstance();
         profileImage = findViewById(R.id.imageUser);
-        btnLogout = findViewById(R.id.logoutBtn);
         btnEditProfile = findViewById(R.id.editBtn);
         btnCancelEdit = findViewById(R.id.cancelBtn);
         profileName = findViewById(R.id.textName);
@@ -76,6 +76,11 @@ public class ProfileActivity extends AppCompatActivity {
         editTextCarrierNumber = findViewById(R.id.editText_carrierNumber);
 
         ccp.registerCarrierNumberEditText(editTextCarrierNumber);
+
+        mainToolbar = findViewById(R.id.main_toolbar);
+        mainToolbar.bringToFront();
+        setSupportActionBar(mainToolbar);
+        getSupportActionBar().setTitle("Edit profile");
 
         storageReference = FirebaseStorage.getInstance().getReference();
         firebaseFirestore = FirebaseFirestore.getInstance();
@@ -104,13 +109,6 @@ public class ProfileActivity extends AppCompatActivity {
                 else {
                     startImagePicker();
                 }
-            }
-        });
-
-        btnLogout.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                signOut();
             }
         });
 
@@ -283,19 +281,6 @@ public class ProfileActivity extends AppCompatActivity {
                 toast.show();
             }
         }
-    }
-
-    private void signOut() {
-        mAuth.signOut();
-        GoogleSignIn.getClient(
-                getApplicationContext(),
-                new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN).build()
-        ).signOut();
-
-        Intent intent = new Intent(getApplicationContext(),LoginActivity.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        startActivity(intent);
-        finish();
     }
 
     private void sentToMainActivity() {
