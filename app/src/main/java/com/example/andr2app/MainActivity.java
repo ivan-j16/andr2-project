@@ -12,6 +12,10 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
@@ -19,6 +23,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
@@ -51,7 +56,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private Boolean mLocationPermissionsGranted = false;
     private final int LOCATION_PERMISSION_REQUEST_CODE = 1234;
 
-
+    private SensorManager sensorManager;
+    private Sensor sensor;
+    private int steps;
+    private TextView stepCounterTextView;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -80,13 +88,34 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                startActivity(addNewItemIntent);
             }
         });
-
-
         GetLocationPermission();
+
+        // step counter:
+        stepCounterTextView = findViewById(R.id.stepCounter_tv);
+        sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+        sensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_DETECTOR);
+
     }
+
+    private SensorEventListener mSensorEventListener = new SensorEventListener() {
+        @Override
+        public void onAccuracyChanged(Sensor sensor, int accuracy) {
+
+        }
+
+        @Override
+        public void onSensorChanged(SensorEvent event) {
+            if (event.values[0] == 1.0f) {
+                steps++;
+            }
+            stepCounterTextView.setText("Steps: " + Integer.toString(steps));
+        }
+    };
 
     @Override
     public void onResume(){
+        sensorManager.registerListener(mSensorEventListener, sensor,
+                SensorManager.SENSOR_DELAY_NORMAL);
         super.onResume();
         GetLocationPermission();
     }
