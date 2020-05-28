@@ -85,7 +85,6 @@ public class ProfileActivity extends AppCompatActivity {
         storageReference = FirebaseStorage.getInstance().getReference();
         firebaseFirestore = FirebaseFirestore.getInstance();
         user_id = mAuth.getCurrentUser().getUid();
-
         getAccountInformation();
 
         profileImage.setOnClickListener(new View.OnClickListener() {

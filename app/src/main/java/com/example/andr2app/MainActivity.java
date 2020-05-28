@@ -12,12 +12,16 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.location.Location;
 import android.location.LocationManager;
+import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -29,21 +33,31 @@ import android.widget.Toast;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationCallback;
-import com.google.android.gms.location.LocationRequest;
-import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
 
@@ -60,13 +74,16 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private Sensor sensor;
     private int steps;
     private TextView stepCounterTextView;
+    private StorageReference storageReference;
+    private FirebaseFirestore firebaseFirestore;
+    FirebaseUser user;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         mAuth = FirebaseAuth.getInstance();
-        FirebaseUser user = mAuth.getCurrentUser();
+        user = mAuth.getCurrentUser();
 
         if (user == null) {
             // If no user is logged in, send to login
@@ -95,7 +112,79 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         sensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_DETECTOR);
 
+        // putting peoples profiles on the map
+        storageReference = FirebaseStorage.getInstance().getReference();
+        firebaseFirestore = FirebaseFirestore.getInstance();
+        getUsersPhotos();
+
     }
+
+    private void getUsersPhotos(){
+
+        CollectionReference ref = firebaseFirestore.collection("Users");
+       ref.get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+           @Override
+           public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                for (QueryDocumentSnapshot documentSnapshot: queryDocumentSnapshots)
+                {
+                    String image = documentSnapshot.get("image").toString();
+                    String name = documentSnapshot.get("name").toString();
+                    String latitude = documentSnapshot.get("latitude").toString();
+                    String longitude = documentSnapshot.get("longitude").toString();
+                    SetUserLocationMarkers setLocations = new SetUserLocationMarkers();
+                    setLocations.execute(image,name,latitude,longitude);
+                }
+           }
+       });
+    }
+
+
+    class SetUserLocationMarkers extends AsyncTask<String,Void,Void>
+    {
+        @Override
+        protected void onPreExecute() {
+            // TODO Auto-generated method stub
+            super.onPreExecute();
+
+        }
+
+        String userName;
+        Double userLatitude;
+        Double userLongitude;
+        Bitmap bitmapImage;
+        @Override
+        protected Void doInBackground(String... params) {
+            userName = params[1];
+            userLatitude = Double.parseDouble(params[2]);
+            userLongitude = Double.parseDouble(params[3]);
+            Uri mainImageURI = Uri.parse(params[0]);
+            URL imageURL=null;
+            try {
+                imageURL = new URL(mainImageURI.toString());
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            }
+            try {
+                bitmapImage = BitmapFactory.decodeStream(imageURL.openConnection().getInputStream());
+                bitmapImage = Bitmap.createScaledBitmap(bitmapImage, 100, 100, false);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+        @Override
+        protected void onPostExecute(Void result) {
+
+            super.onPostExecute(result);
+            mMap.addMarker(new MarkerOptions()
+                    .position(new LatLng(userLatitude, userLongitude))
+                    .title(userName)
+                    .snippet("") // products count
+                    .icon(BitmapDescriptorFactory.fromBitmap(bitmapImage)));
+        }
+    }
+
+
 
     private SensorEventListener mSensorEventListener = new SensorEventListener() {
         @Override
@@ -129,6 +218,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private void moveCamera(LatLng latLng, float zoom){
         Log.d("msg: ", "moveCamera: moving the camera to: lat: " + latLng.latitude + ", lng: " + latLng.longitude );
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoom));
+        //other markers with photos:
+        final LatLng MELBOURNE = new LatLng(latLng.latitude, + latLng.longitude);
     }
 
     public void statusLocationCheck() {
