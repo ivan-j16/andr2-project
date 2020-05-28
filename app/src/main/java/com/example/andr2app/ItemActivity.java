@@ -62,7 +62,7 @@ public class ItemActivity extends AppCompatActivity {
 
     }
 
-    private List<Product> loadProducts(){
+    public List<Product> loadProducts(){
 
         List<Product> productsToBeShown = new ArrayList<>();
        productCollection.get()
@@ -74,7 +74,8 @@ public class ItemActivity extends AppCompatActivity {
                                 String name = product.getString("name");
                                 double price = product.getDouble("price");
                                 String url = product.getString("photoUrl");
-                                Product p = new Product(name, price, url);
+                                String id = product.getId();
+                                Product p = new Product(name, price, url,id);
                                 productsToBeShown.add(p);
 
                             }else{

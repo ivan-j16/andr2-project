@@ -13,6 +13,7 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
@@ -22,14 +23,18 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 import com.theartofdev.edmodo.cropper.CropImage;
 import com.theartofdev.edmodo.cropper.CropImageView;
+
+import java.util.Random;
 
 public class AddItemActivity extends AppCompatActivity {
 
@@ -49,6 +54,7 @@ public class AddItemActivity extends AppCompatActivity {
     private ProgressBar progressBar;
 
     private String user_id;
+    private int product_id;
     private Uri mainImageURI = null;
     private boolean imageChanged = false;
 
@@ -76,6 +82,8 @@ public class AddItemActivity extends AppCompatActivity {
         getSupportActionBar().setTitle("Add new item");
 
         user_id = mAuth.getCurrentUser().getUid();
+        Random rand = new Random();
+        product_id = rand.nextInt(1000000);
 
         productImage.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -121,7 +129,50 @@ public class AddItemActivity extends AppCompatActivity {
         String name = productName.getText().toString();
         double price = Double.valueOf(productPrice.getText().toString());
 
-        Product product = new Product(name, price, "none");
+        if (imageChanged) {
+            if (!TextUtils.isEmpty(name) && !TextUtils.isEmpty(String.valueOf(price)) && mainImageURI != null) {
+
+                final StorageReference image_path = storageReference.child("product_images")
+                        .child(product_id + ".jpg");
+
+                image_path.putFile(mainImageURI).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
+                        if (task.isSuccessful()) {
+                            image_path.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                                @Override
+                                public void onSuccess(Uri uri) {
+                                    addData(name, price, String.valueOf(uri), String.valueOf(product_id));
+                                    sentToMainActivity();
+                                }
+                            });
+                        } else {
+                            progressBar.setVisibility(View.INVISIBLE);
+
+                            String error = task.getException().getLocalizedMessage();
+                            Toast toast = Toast.makeText(getApplicationContext(), "Image error: " + error,
+                                    Toast.LENGTH_LONG);
+                            toast.setGravity(Gravity.TOP | Gravity.CENTER_HORIZONTAL, 0, 0);
+                            toast.show();
+                        }
+                    }
+                });
+
+            } else {
+                Toast toast = Toast.makeText(getApplicationContext(), "Name and/or profile image missing.",
+                        Toast.LENGTH_SHORT);
+                toast.setGravity(Gravity.TOP | Gravity.CENTER_HORIZONTAL, 0, 0);
+                toast.show();
+            }
+
+        } else {
+           addData(name, price, "none", String.valueOf(product_id));
+        }
+
+    }
+
+    private void addData(String name, double price, String url, String id){
+        Product product = new Product(name, price, url, id);
 
         userCollection.document(user_id).collection("Products").add(product);
     }
@@ -139,6 +190,26 @@ public class AddItemActivity extends AppCompatActivity {
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         startActivity(intent);
         finish();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE) {
+            CropImage.ActivityResult result = CropImage.getActivityResult(data);
+            if (resultCode == RESULT_OK) {
+                mainImageURI = result.getUri();
+                productImage.setImageURI(mainImageURI);
+                imageChanged = true;
+
+            } else if (resultCode == CropImage.CROP_IMAGE_ACTIVITY_RESULT_ERROR_CODE) {
+                Exception error = result.getError();
+                Toast toast = Toast.makeText(getApplicationContext(), "Error: " + error.getMessage(),
+                        Toast.LENGTH_SHORT);
+                toast.setGravity(Gravity.TOP|Gravity.CENTER_HORIZONTAL, 0, 0);
+                toast.show();
+            }
+        }
     }
 
 }
