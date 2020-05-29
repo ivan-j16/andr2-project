@@ -7,7 +7,7 @@
         android:title="Profile" />
     <item
         android:id="@+id/nav_items"
-        android:title="Items" />
+        android:title="Your Products" />
     <item
         android:id="@+id/nav_logout"
         android:title="Logout" />

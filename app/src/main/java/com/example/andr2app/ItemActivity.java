@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Gravity;
@@ -57,7 +58,7 @@ public class ItemActivity extends AppCompatActivity {
         productListView = findViewById(R.id.lvProducts);
 
         // Will change if viewing another person's items
-        getSupportActionBar().setTitle("Your items");
+        getSupportActionBar().setTitle("Your products");
         loadProducts();
 
     }

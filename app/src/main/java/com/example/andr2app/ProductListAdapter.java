@@ -83,6 +83,17 @@ public class ProductListAdapter extends ArrayAdapter<Product> {
                 deleteProduct(position);
             }
         });
+        editProductButton.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v) {
+                Product p = mObjects.get(position);
+                Intent intent = new Intent( mContext, EditItemActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                intent.putExtra("id", p.getId());
+                mContext.startActivity(intent);
+
+            }
+        });
 
         return convertView;
     }
