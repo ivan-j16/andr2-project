@@ -102,8 +102,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (user == null) {
             // If no user is logged in, send to login
             Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             startActivity(intent);
             finish();
+            return;
         }
 
         mainToolbar = findViewById(R.id.main_toolbar);
