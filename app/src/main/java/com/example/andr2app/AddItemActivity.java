@@ -171,10 +171,11 @@ public class AddItemActivity extends AppCompatActivity {
 
     }
 
-    private void addData(String name, double price, String url, String id){
+    public Product addData(String name, double price, String url, String id){
         Product product = new Product(name, price, url, id);
 
         userCollection.document(user_id).collection("Products").add(product);
+        return product;
     }
 
     private void startImagePicker() {
@@ -185,7 +186,7 @@ public class AddItemActivity extends AppCompatActivity {
     }
 
 
-    private void sentToMainActivity() {
+    public void sentToMainActivity() {
         Intent intent = new Intent(getApplicationContext(), MainActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         startActivity(intent);
