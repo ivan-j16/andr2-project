@@ -47,6 +47,7 @@ public class AddItemActivityTest {
         assertEquals(p.getName(), mActivity.addData(name, price, url, String.valueOf(product_id)).getName());
     }
 
+
     @Test
     public void testSentToMainActivity(){
         mActivity.sentToMainActivity();

@@ -73,7 +73,7 @@ public class ProductListAdapter extends ArrayAdapter<Product> {
         Button editProductButton = (Button) convertView.findViewById(R.id.productEditBtn);
 
         tvName.setText(name);
-        tvPrice.setText("Price: €" + String.valueOf(price));
+        tvPrice.setText("Price: " + p.getPriceFormatted());
 
         Glide.with(mContext).load(url).into(productImageView);
 
