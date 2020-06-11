@@ -214,7 +214,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         protected void onPreExecute() {
             // TODO Auto-generated method stub
             super.onPreExecute();
-
         }
 
         String userName;
@@ -317,7 +316,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             @Override
             public void onLocationChanged(Location location) {
                 // TODO Auto-generated method stub
-                SaveLocationOfUser(String.valueOf(location.getLatitude()),String.valueOf(location.getLongitude()));
+                SaveLocationOfUser(String.valueOf(location.getLongitude()),String.valueOf(location.getLatitude()));
             }
 
             @Override
@@ -399,7 +398,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                                 {
                                     m_latitude = currentLocation.getLatitude();
                                     m_longitude = currentLocation.getLongitude();
-                                    SaveLocationOfUser(String.valueOf(currentLocation.getLatitude()),String.valueOf(currentLocation.getLongitude()));
+                                    SaveLocationOfUser(String.valueOf(currentLocation.getLongitude()), String.valueOf(currentLocation.getLatitude()));
                                     moveCamera(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()),
                                     18);
                                     OnLocationChangeInit();
