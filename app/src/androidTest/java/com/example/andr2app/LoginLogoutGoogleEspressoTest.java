@@ -11,8 +11,6 @@ import androidx.test.rule.ActivityTestRule;
 import androidx.test.rule.GrantPermissionRule;
 import androidx.test.runner.AndroidJUnit4;
 
-import com.google.android.gms.auth.api.signin.GoogleSignIn;
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
@@ -24,7 +22,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import static androidx.test.core.app.ApplicationProvider.getApplicationContext;
 import static androidx.test.espresso.Espresso.onView;
 import static androidx.test.espresso.action.ViewActions.click;
 import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
@@ -57,7 +54,7 @@ public class LoginLogoutGoogleEspressoTest {
                     "android.permission.ACCESS_COARSE_LOCATION");
 
     @Test
-    public void loginLogoutEspressoTest() {
+    public void mainActivityTest() {
         ViewInteraction appCompatButton = onView(
                 allOf(withId(R.id.loginGoogle), withText("Login with Google"),
                         childAtPosition(
