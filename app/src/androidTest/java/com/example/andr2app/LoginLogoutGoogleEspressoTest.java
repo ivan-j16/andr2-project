@@ -47,10 +47,19 @@ public class LoginLogoutGoogleEspressoTest {
 
     @Test
     public void mainActivityTest() {
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         ViewInteraction appCompatButton = onView(
                 allOf(withId(R.id.loginGoogle), withText("Login with Google")));
         appCompatButton.perform(click());
-
+        try {
+            Thread.sleep(3000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         ViewInteraction overflowMenuButton = onView(
                 allOf(withContentDescription("More options")));
         overflowMenuButton.perform(click());
