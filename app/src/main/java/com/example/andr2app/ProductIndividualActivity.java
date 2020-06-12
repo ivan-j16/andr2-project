@@ -85,7 +85,7 @@ public class ProductIndividualActivity extends AppCompatActivity {
         productName.setText(p.getName());
         productPrice.setText("Price: " + p.getPriceFormatted());
 
-        FirebaseMessaging.getInstance().subscribeToTopic(p.getId());
+        FirebaseMessaging.getInstance().subscribeToTopic("/topics/"+p.getId());
         btnNotification = findViewById(R.id.productIndividualNotify);
         btnNotification.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -166,6 +166,7 @@ public class ProductIndividualActivity extends AppCompatActivity {
             };
 
             req.add(request);
+
         }
 
 

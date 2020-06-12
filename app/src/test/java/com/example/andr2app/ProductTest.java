@@ -15,8 +15,9 @@ public class ProductTest {
         String url = "none";
         Random rand = new Random();
         int product_id = rand.nextInt(1000000);
+        String userId = "testUserId";
 
-        Product p = new Product(name, price, url, String.valueOf(product_id));
+        Product p = new Product(name, price, url, String.valueOf(product_id), userId);
 
         assertEquals(p.getName(), name);
     }
@@ -28,8 +29,9 @@ public class ProductTest {
         String url = "none";
         Random rand = new Random();
         int product_id = rand.nextInt(1000000);
+        String userId = "testUserId";
 
-        Product p = new Product(name, price, url, String.valueOf(product_id));
+        Product p = new Product(name, price, url, String.valueOf(product_id), userId);
 
         assertEquals(p.getPriceFormatted(), "35.60 €");
     }

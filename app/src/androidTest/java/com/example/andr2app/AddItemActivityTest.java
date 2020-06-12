@@ -41,8 +41,8 @@ public class AddItemActivityTest {
         String url = "none";
         Random rand = new Random();
         int product_id = rand.nextInt(1000000);
-
-        Product p = new Product(name, price, url, String.valueOf(product_id));
+        String userId = "testUserid";
+        Product p = new Product(name, price, url, String.valueOf(product_id), userId);
 
         assertEquals(p.getName(), mActivity.addData(name, price, url, String.valueOf(product_id)).getName());
     }
