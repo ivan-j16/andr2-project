@@ -478,6 +478,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 Intent itemsIntent = new Intent(getApplicationContext(), ItemActivity.class);
                 startActivity(itemsIntent);
                 return true;
+            case R.id.nav_all_items:
+                Intent all_items_intent = new Intent(getApplicationContext(), AllItemsActivity.class);
+                startActivity(all_items_intent);
+                return true;
             default:
                 Toast.makeText(getApplicationContext(), "Navigation error",
                         Toast.LENGTH_SHORT).show();
