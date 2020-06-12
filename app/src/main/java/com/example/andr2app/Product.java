@@ -5,22 +5,25 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.Currency;
 
-public class Product {
+@SuppressWarnings("serial")
+public class Product implements Serializable{
     private String name;
     private double price;
     private String photoUrl;
-
     private String id;
+    private String userId;
+
 
     public Product() {
         //public constructor with no args needed for firestore
     }
 
-    public Product(String name, double price, String photoUrl, String id) {
+    public Product(String name, double price, String photoUrl, String id, String userId) {
         this.name = name;
         this.price = price;
         this.photoUrl = photoUrl;
         this.id = id;
+        this.userId = userId;
     }
 
     public String getName(){
@@ -37,6 +40,10 @@ public class Product {
 
     public String getId() {
         return id;
+    }
+
+    public String getUserId() {
+        return userId;
     }
 
     public String getPriceFormatted(){

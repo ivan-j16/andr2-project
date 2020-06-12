@@ -4,13 +4,9 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
-import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Gravity;
-import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnFailureListener;
@@ -23,18 +19,16 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
-import com.google.firestore.v1beta1.ListCollectionIdsRequest;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class ItemActivity extends AppCompatActivity {
+public class AllItemsActivity extends AppCompatActivity {
 
     private Toolbar mainToolbar;
     private FirebaseAuth mAuth;
     private StorageReference storageReference;
     private FirebaseFirestore firebaseFirestore;
-    private CollectionReference productCollection;
 
     private String user_id;
 
@@ -43,65 +37,24 @@ public class ItemActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_item);
+        setContentView(R.layout.activity_all_items);
 
         mAuth = FirebaseAuth.getInstance();
         storageReference = FirebaseStorage.getInstance().getReference();
         firebaseFirestore = FirebaseFirestore.getInstance();
 
         user_id = mAuth.getCurrentUser().getUid();
-        productCollection = firebaseFirestore.collection("Users/" + user_id + "/Products");
 
         mainToolbar = findViewById(R.id.main_toolbar);
         mainToolbar.bringToFront();
         setSupportActionBar(mainToolbar);
 
-        productListView = findViewById(R.id.lvProducts);
+        productListView = findViewById(R.id.lvAllProducts);
 
         // Will change if viewing another person's items
-        getSupportActionBar().setTitle("Your products");
-        loadProducts();
-    }
+        getSupportActionBar().setTitle("All products");
 
-    public List<Product> loadProducts(){
-
-        List<Product> productsToBeShown = new ArrayList<>();
-       productCollection.get()
-               .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-                   @Override
-                   public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-                        for (DocumentSnapshot product : queryDocumentSnapshots){
-                            if (product.exists()){
-                                String name = product.getString("name");
-                                double price = product.getDouble("price");
-                                String url = product.getString("photoUrl");
-                                String id = product.getId();
-                                String userId = product.getString("userId");
-                                Product p = new Product(name, price, url,id,userId);
-                                productsToBeShown.add(p);
-                            }else{
-                                Toast toast = Toast.makeText(getApplicationContext(), "Product error!",
-                                        Toast.LENGTH_LONG);
-                                toast.setGravity(Gravity.TOP|Gravity.CENTER_HORIZONTAL, 0, 0);
-                                toast.show();
-                            }
-                        }
-
-                        ProductListAdapter adapter = new ProductListAdapter(getApplicationContext(), R.layout.product_view, productsToBeShown);
-                        productListView.setAdapter(adapter);
-
-                   }
-               })
-               .addOnFailureListener(new OnFailureListener() {
-                   @Override
-                   public void onFailure(@NonNull Exception e) {
-                       Toast toast = Toast.makeText(getApplicationContext(), "Error!",
-                               Toast.LENGTH_LONG);
-                       toast.setGravity(Gravity.TOP|Gravity.CENTER_HORIZONTAL, 0, 0);
-                       toast.show();
-                   }
-               });
-        return productsToBeShown;
+        loadAllProducts();
     }
 
     public List<Product> loadAllProducts(){
@@ -113,9 +66,8 @@ public class ItemActivity extends AppCompatActivity {
 
                 for (QueryDocumentSnapshot documentSnapshot : queryDocumentSnapshots) { //for each user
                     String fetchedUserId = documentSnapshot.getId();
+
                     CollectionReference userProductsRef = firebaseFirestore.collection("Users/" + fetchedUserId + "/Products");
-
-
                     userProductsRef.get()
                             .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
                                 @Override
@@ -125,9 +77,9 @@ public class ItemActivity extends AppCompatActivity {
                                             String name = product.getString("name");
                                             double price = product.getDouble("price");
                                             String url = product.getString("photoUrl");
-                                            String userId = product.getString("userId");
                                             String id = product.getId();
-                                            Product p = new Product(name, price, url,id,userId);
+                                            String userId = product.getString("userId");
+                                            Product p = new Product(name, price, url,id, userId);
                                             productsToBeShown.add(p);
 
                                         }else{
@@ -138,11 +90,12 @@ public class ItemActivity extends AppCompatActivity {
                                         }
                                     }
 
-                                    ProductListAdapter adapter = new ProductListAdapter(getApplicationContext(), R.layout.product_view, productsToBeShown);
+                                    AllProductListAdapter adapter = new AllProductListAdapter(getApplicationContext(), R.layout.product_view_all, productsToBeShown);
                                     productListView.setAdapter(adapter);
 
                                 }
                             });
+
                 }
             }
         }).addOnFailureListener(new OnFailureListener() {
@@ -158,5 +111,4 @@ public class ItemActivity extends AppCompatActivity {
 
         return productsToBeShown;
     }
-
 }

@@ -129,6 +129,8 @@ public class AddItemActivity extends AppCompatActivity {
         String name = productName.getText().toString();
         double price = Double.valueOf(productPrice.getText().toString());
 
+
+
         if (imageChanged) {
             if (!TextUtils.isEmpty(name) && !TextUtils.isEmpty(String.valueOf(price)) && mainImageURI != null) {
 
@@ -172,7 +174,7 @@ public class AddItemActivity extends AppCompatActivity {
     }
 
     public Product addData(String name, double price, String url, String id){
-        Product product = new Product(name, price, url, id);
+        Product product = new Product(name, price, url, id, user_id);
 
         userCollection.document(user_id).collection("Products").add(product);
         return product;
