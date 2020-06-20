@@ -46,7 +46,7 @@
         <service
             android:name=".MyFirebaseMessagingService"
             android:enabled="false"
-            android:exported="false">
+            android:exported="false"
             android:permission="com.google.android.c2dm.permission.SEND">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />

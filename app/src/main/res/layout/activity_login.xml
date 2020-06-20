@@ -13,25 +13,15 @@
         android:layout_height="150dp"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="60dp"
-        android:src="@drawable/ic_map_black_24dp"
+        android:src="@drawable/ic_worldwide"
         android:contentDescription="@string/app_name"/>
-
-    <TextView
-        android:id="@+id/text"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/app_name"
-        android:textColor="@android:color/white"
-        android:textSize="16sp"
-        android:layout_below="@id/image"
-        android:gravity="center"/>
 
     <ProgressBar
         android:visibility="invisible"
         android:id="@+id/progress_circular"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@id/text"
+        android:layout_below="@id/image"
         android:layout_marginTop="20dp"
         android:layout_centerHorizontal="true"/>
 
@@ -52,7 +42,7 @@
         android:id="@+id/textEmail"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/text"
+        android:layout_below="@id/image"
         android:layout_marginTop="91dp"
         android:gravity="start"
         android:hint="Email..."
