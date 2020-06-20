@@ -107,30 +107,36 @@ public class ProductIndividualActivity extends AppCompatActivity {
         loggedUserId = mAuth.getCurrentUser().getUid();
         btnNotification = findViewById(R.id.productIndividualNotify);
 
-        updateToken();
         setUserInfo();
 
         btnNotification.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
-                String currentUserName = mAuth.getCurrentUser().getEmail();
+                String currentUserMail = mAuth.getCurrentUser().getEmail();
 
                 FirebaseDatabase.getInstance().getReference().child("Users").child(p.getUserId()).child("token").addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                        String userToken = dataSnapshot.getValue(String.class);
-                        notifyInterest(userToken, "A user has shown interest!", "User " + currentUserName + " has shown interest in your " + p.getName() + ". Expect them to contact you soon!");
+
+                        String userToken = dataSnapshot.child("token").getValue(String.class);
+                        notifyInterest(userToken, "A user has shown interest!", "User " + currentUserMail + " has shown interest in your " + p.getName() + ". Expect them to contact you soon!");
+
+                        Toast toast = Toast.makeText(ProductIndividualActivity.this, "Message sent!", Toast.LENGTH_LONG);
+                        toast.setGravity(Gravity.TOP|Gravity.CENTER_HORIZONTAL, 0, 0);
+                        toast.show();
                     }
 
                     @Override
                     public void onCancelled(@NonNull DatabaseError databaseError) {
-                        Toast.makeText(ProductIndividualActivity.this, "Message not sent but different!", Toast.LENGTH_LONG);
+                        Toast toast = Toast.makeText(ProductIndividualActivity.this, "Error sending message!", Toast.LENGTH_LONG);
+                        toast.setGravity(Gravity.TOP|Gravity.CENTER_HORIZONTAL, 0, 0);
+                        toast.show();
                     }
                 });
             }
         });
-
+        updateToken();
     }
 
 
@@ -159,28 +165,27 @@ public class ProductIndividualActivity extends AppCompatActivity {
                 public void onResponse(Call<MyResponse> call, Response<MyResponse> response) {
                     if (response.code() == 200){
                         if (response.body().success != 1){
-                            Toast.makeText(ProductIndividualActivity.this, "Failed!", Toast.LENGTH_LONG);
-                        }
-                        if(response.body().success == 1){
-                            Toast.makeText(ProductIndividualActivity.this, "Message sent!", Toast.LENGTH_LONG);
+                            Toast toast = Toast.makeText(ProductIndividualActivity.this, "Failed!", Toast.LENGTH_LONG);
+                            toast.setGravity(Gravity.TOP|Gravity.CENTER_HORIZONTAL, 0, 0);
+                            toast.show();
                         }
                     }
                 }
 
                 @Override
                 public void onFailure(Call<MyResponse> call, Throwable t) {
-                    Toast.makeText(ProductIndividualActivity.this, "Message not sent!", Toast.LENGTH_LONG);
-
+                    Toast toast = Toast.makeText(ProductIndividualActivity.this, "Message not sent!", Toast.LENGTH_LONG);
+                    toast.setGravity(Gravity.TOP|Gravity.CENTER_HORIZONTAL, 0, 0);
+                    toast.show();
                 }
             });
-
         }
 
         void updateToken(){
             FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
             String newToken = FirebaseInstanceId.getInstance().getToken();
             Token token = new Token(newToken);
-            FirebaseDatabase.getInstance().getReference("Users").child(user.getUid()).setValue(token);
+            FirebaseDatabase.getInstance().getReference("Users").child(user.getUid()).child("token").setValue(token);
         }
 
 

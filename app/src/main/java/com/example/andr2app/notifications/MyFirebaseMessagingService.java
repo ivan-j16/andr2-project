@@ -35,7 +35,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                         .setStyle(new NotificationCompat.BigTextStyle()
                                 .bigText(message))
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-                .setVibrate(new long[] { 0, 500, 1000, 1000, 1000 });
+                .setVibrate(new long[] { 0, 500, 0, 0, 0 });
         NotificationManager manager = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
         manager.notify(0,builder.build());
     }

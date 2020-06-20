@@ -28,6 +28,6 @@ public class MyFirebaseIdService extends FirebaseMessagingService {
    void updateToken(String token){
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         Token token1 = new Token(token);
-        FirebaseDatabase.getInstance().getReference("Users").child(FirebaseAuth.getInstance().getCurrentUser().getUid()).setValue(token);
+        FirebaseDatabase.getInstance().getReference("Users").child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("token").setValue(token1);
    }
 }
