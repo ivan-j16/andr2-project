@@ -115,25 +115,56 @@ public class ProductIndividualActivity extends AppCompatActivity {
 
                 String currentUserMail = mAuth.getCurrentUser().getEmail();
 
-                FirebaseDatabase.getInstance().getReference().child("Users").child(p.getUserId()).child("token").addListenerForSingleValueEvent(new ValueEventListener() {
+                firebaseFirestore.document("Users/" + p.getUserId()).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                     @Override
-                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                        if (task.isSuccessful()) {
+                            if (task.getResult().exists()) {
 
-                        String userToken = dataSnapshot.child("token").getValue(String.class);
-                        notifyInterest(userToken, "A user has shown interest!", "User " + currentUserMail + " has shown interest in your " + p.getName() + ". Expect them to contact you soon!");
+                                String token = task.getResult().getString("token");
 
-                        Toast toast = Toast.makeText(ProductIndividualActivity.this, "Message sent!", Toast.LENGTH_LONG);
-                        toast.setGravity(Gravity.TOP|Gravity.CENTER_HORIZONTAL, 0, 0);
-                        toast.show();
-                    }
+                                notifyInterest(token, "A user has shown interest!", "User " + currentUserMail + " has shown interest in your " + p.getName() + ". Expect them to contact you soon!");
 
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError databaseError) {
-                        Toast toast = Toast.makeText(ProductIndividualActivity.this, "Error sending message!", Toast.LENGTH_LONG);
-                        toast.setGravity(Gravity.TOP|Gravity.CENTER_HORIZONTAL, 0, 0);
-                        toast.show();
+                            Toast toast = Toast.makeText(ProductIndividualActivity.this, "Message sent!", Toast.LENGTH_LONG);
+                            toast.setGravity(Gravity.TOP|Gravity.CENTER_HORIZONTAL, 0, 0);
+                            toast.show();
+                            }
+                            else {
+                                Toast toast = Toast.makeText(getApplicationContext(), "Data does not exist",
+                                        Toast.LENGTH_SHORT);
+                                toast.setGravity(Gravity.TOP|Gravity.CENTER_HORIZONTAL, 0, 0);
+                                toast.show();
+                            }
+                        }
+                        else {
+                            String error = task.getException().getMessage();
+                            Toast toast = Toast.makeText(getApplicationContext(), "Firestore retrieve error: " + error,
+                                    Toast.LENGTH_LONG);
+                            toast.setGravity(Gravity.TOP|Gravity.CENTER_HORIZONTAL, 0, 0);
+                            toast.show();
+                        }
                     }
                 });
+
+//                FirebaseDatabase.getInstance().getReference().child("Users").child(p.getUserId()).addListenerForSingleValueEvent(new ValueEventListener() {
+//                    @Override
+//                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+//
+//                        String userToken = dataSnapshot.child("token").getValue(String.class);
+//                        notifyInterest(userToken, "A user has shown interest!", "User " + currentUserMail + " has shown interest in your " + p.getName() + ". Expect them to contact you soon!");
+//
+//                        Toast toast = Toast.makeText(ProductIndividualActivity.this, "Message sent!", Toast.LENGTH_LONG);
+//                        toast.setGravity(Gravity.TOP|Gravity.CENTER_HORIZONTAL, 0, 0);
+//                        toast.show();
+//                    }
+//
+//                    @Override
+//                    public void onCancelled(@NonNull DatabaseError databaseError) {
+//                        Toast toast = Toast.makeText(ProductIndividualActivity.this, "Error sending message!", Toast.LENGTH_LONG);
+//                        toast.setGravity(Gravity.TOP|Gravity.CENTER_HORIZONTAL, 0, 0);
+//                        toast.show();
+//                    }
+//                });
             }
         });
         updateToken();
@@ -155,7 +186,7 @@ public class ProductIndividualActivity extends AppCompatActivity {
                 }
             }
         });
-        }
+    }
 
         void notifyInterest(String userToken, String title, String message){
             Data data = new Data(title, message);
@@ -184,8 +215,11 @@ public class ProductIndividualActivity extends AppCompatActivity {
         void updateToken(){
             FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
             String newToken = FirebaseInstanceId.getInstance().getToken();
-            Token token = new Token(newToken);
-            FirebaseDatabase.getInstance().getReference("Users").child(user.getUid()).child("token").setValue(token);
+            //Token token = new Token(newToken);
+
+            //FirebaseDatabase.getInstance().getReference("Users").child(user.getUid()).child("token").setValue(token);
+            DocumentReference ref = firebaseFirestore.document("Users/" + user.getUid());
+            ref.update("token", newToken);
         }
 
 
