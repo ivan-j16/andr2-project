@@ -58,5 +58,8 @@ dependencies {
     implementation 'com.google.errorprone:error_prone_annotations:2.3.2'
     implementation 'com.google.firebase:firebase-messaging:20.2.0'
     apply plugin: 'com.google.gms.google-services'
+
+    implementation 'com.squareup.retrofit2:retrofit:2.3.0'
+    implementation 'com.squareup.retrofit2:converter-gson:2.3.0'
     //implementation 'com.google.firebase:firebase-admin:6.13.0'
 }

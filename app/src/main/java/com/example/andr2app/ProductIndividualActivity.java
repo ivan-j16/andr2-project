@@ -4,12 +4,16 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
@@ -20,21 +24,32 @@ import android.widget.Toast;
 import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
-import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.bumptech.glide.Glide;
+import com.example.andr2app.notifications.APIService;
+import com.example.andr2app.notifications.Client;
+import com.example.andr2app.notifications.Data;
+import com.example.andr2app.notifications.MyResponse;
+import com.example.andr2app.notifications.NotificationSender;
+import com.example.andr2app.notifications.Token;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
@@ -62,9 +77,11 @@ public class ProductIndividualActivity extends AppCompatActivity {
     private FirebaseFirestore firebaseFirestore;
     private FirebaseAuth mAuth;
 
-    private RequestQueue req;
 
-    private String url = "https://fcm.googleapis.com/fcm/send";
+    //notification
+    private APIService apiService;
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,6 +91,8 @@ public class ProductIndividualActivity extends AppCompatActivity {
         Intent intent = getIntent();
         p = (Product) intent.getSerializableExtra("Product");
 
+        apiService = Client.getClient("https://fcm.googleapis.com/").create(APIService.class);
+
         ivProduct = findViewById(R.id.productIndividualView);
         productName = findViewById(R.id.productIndividualNameView);
         productPrice = findViewById(R.id.productIndividualPriceView);
@@ -81,30 +100,37 @@ public class ProductIndividualActivity extends AppCompatActivity {
         productUserPhone = findViewById(R.id.productIndividualUserPhone);
 
         Glide.with(this).load(p.getPhotoUrl()).into(ivProduct);
-
+        mAuth = FirebaseAuth.getInstance();
+        firebaseFirestore = FirebaseFirestore.getInstance();
         productName.setText(p.getName());
         productPrice.setText("Price: " + p.getPriceFormatted());
-
-        FirebaseMessaging.getInstance().subscribeToTopic("/topics/"+p.getId());
+        loggedUserId = mAuth.getCurrentUser().getUid();
         btnNotification = findViewById(R.id.productIndividualNotify);
+
+        updateToken();
+        setUserInfo();
+
         btnNotification.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                try {
-                    notifyInterest();
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
+
+                String currentUserName = mAuth.getCurrentUser().getEmail();
+
+                FirebaseDatabase.getInstance().getReference().child("Users").child(p.getUserId()).child("token").addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                        String userToken = dataSnapshot.getValue(String.class);
+                        notifyInterest(userToken, "A user has shown interest!", "User " + currentUserName + " has shown interest in your " + p.getName() + ". Expect them to contact you soon!");
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError databaseError) {
+                        Toast.makeText(ProductIndividualActivity.this, "Message not sent but different!", Toast.LENGTH_LONG);
+                    }
+                });
             }
         });
-        mAuth = FirebaseAuth.getInstance();
-        firebaseFirestore = FirebaseFirestore.getInstance();
 
-        loggedUserId = mAuth.getCurrentUser().getUid();
-
-        req = Volley.newRequestQueue(this);
-
-        setUserInfo();
     }
 
 
@@ -125,48 +151,36 @@ public class ProductIndividualActivity extends AppCompatActivity {
         });
         }
 
-        void notifyInterest() throws JSONException {
-
-            JSONObject mainObj = new JSONObject();
-
-            mainObj.put("to", "/topics/"+p.getId());
-
-            JSONObject notificationObject = new JSONObject();
-            notificationObject.put("title", "A user is interested in your item!");
-            notificationObject.put("body", "User " + loggedUserId + " will contact you about your " + p.getName());
-
-            mainObj.put("notification", notificationObject);
-
-            JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, url, mainObj, new Response.Listener<JSONObject>() {
+        void notifyInterest(String userToken, String title, String message){
+            Data data = new Data(title, message);
+            NotificationSender sender = new NotificationSender(data, userToken);
+            apiService.sendNotification(sender).enqueue(new Callback<MyResponse>() {
                 @Override
-                public void onResponse(JSONObject response) {
-                    Toast toast = Toast.makeText(getApplicationContext(), "Notification sent!",
-                            Toast.LENGTH_LONG);
-                    toast.setGravity(Gravity.TOP|Gravity.CENTER_HORIZONTAL, 0, 0);
-                    toast.show();
+                public void onResponse(Call<MyResponse> call, Response<MyResponse> response) {
+                    if (response.code() == 200){
+                        if (response.body().success != 1){
+                            Toast.makeText(ProductIndividualActivity.this, "Failed!", Toast.LENGTH_LONG);
+                        }
+                        if(response.body().success == 1){
+                            Toast.makeText(ProductIndividualActivity.this, "Message sent!", Toast.LENGTH_LONG);
+                        }
+                    }
                 }
-            }, new Response.ErrorListener() {
+
                 @Override
-                public void onErrorResponse(VolleyError error) {
-                    Toast toast = Toast.makeText(getApplicationContext(), "Error with notification",
-                            Toast.LENGTH_LONG);
-                    toast.setGravity(Gravity.TOP|Gravity.CENTER_HORIZONTAL, 0, 0);
-                    toast.show();
+                public void onFailure(Call<MyResponse> call, Throwable t) {
+                    Toast.makeText(ProductIndividualActivity.this, "Message not sent!", Toast.LENGTH_LONG);
+
                 }
-            }
-            ){
-                @Override
-                public Map<String, String> getHeaders() throws AuthFailureError {
-                    Map<String, String> header = new HashMap<>();
+            });
 
-                    header.put("content-type", "application/json");
-                    header.put("authorization", "key=AAAAoWuvyQg:APA91bFimKsHznbT5e2oCJJRTI_trT675ELfhRRqiCtxnJ4xEkNosd-I5NKwAoyLzIN9npt2L9jX3FdFkqI32xz192EgQe09pfoTvn3ZPNOEaf3i_Sqr6LElz-wpl93_Re0bSm0ktjil");
-                    return header;
-                }
-            };
+        }
 
-            req.add(request);
-
+        void updateToken(){
+            FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+            String newToken = FirebaseInstanceId.getInstance().getToken();
+            Token token = new Token(newToken);
+            FirebaseDatabase.getInstance().getReference("Users").child(user.getUid()).setValue(token);
         }
 
 
