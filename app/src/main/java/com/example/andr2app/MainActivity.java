@@ -111,7 +111,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         mainToolbar = findViewById(R.id.main_toolbar);
         mainToolbar.bringToFront();
         setSupportActionBar(mainToolbar);
-        getSupportActionBar().setTitle("Better OLX");
+        getSupportActionBar().setTitle("Better Trade App");
 
         addItemBtn = findViewById(R.id.add_item_btn);
         addItemBtn.setOnClickListener(new View.OnClickListener() {
