@@ -145,29 +145,8 @@ public class ProductIndividualActivity extends AppCompatActivity {
                         }
                     }
                 });
-
-//                FirebaseDatabase.getInstance().getReference().child("Users").child(p.getUserId()).addListenerForSingleValueEvent(new ValueEventListener() {
-//                    @Override
-//                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-//
-//                        String userToken = dataSnapshot.child("token").getValue(String.class);
-//                        notifyInterest(userToken, "A user has shown interest!", "User " + currentUserMail + " has shown interest in your " + p.getName() + ". Expect them to contact you soon!");
-//
-//                        Toast toast = Toast.makeText(ProductIndividualActivity.this, "Message sent!", Toast.LENGTH_LONG);
-//                        toast.setGravity(Gravity.TOP|Gravity.CENTER_HORIZONTAL, 0, 0);
-//                        toast.show();
-//                    }
-//
-//                    @Override
-//                    public void onCancelled(@NonNull DatabaseError databaseError) {
-//                        Toast toast = Toast.makeText(ProductIndividualActivity.this, "Error sending message!", Toast.LENGTH_LONG);
-//                        toast.setGravity(Gravity.TOP|Gravity.CENTER_HORIZONTAL, 0, 0);
-//                        toast.show();
-//                    }
-//                });
             }
         });
-        updateToken();
     }
 
 
@@ -211,18 +190,6 @@ public class ProductIndividualActivity extends AppCompatActivity {
                 }
             });
         }
-
-        void updateToken(){
-            FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-            String newToken = FirebaseInstanceId.getInstance().getToken();
-            //Token token = new Token(newToken);
-
-            //FirebaseDatabase.getInstance().getReference("Users").child(user.getUid()).child("token").setValue(token);
-            DocumentReference ref = firebaseFirestore.document("Users/" + user.getUid());
-            ref.update("token", newToken);
-        }
-
-
 }
 
 
