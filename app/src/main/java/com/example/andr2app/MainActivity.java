@@ -1,7 +1,6 @@
 package com.example.andr2app;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -33,7 +32,6 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.bumptech.glide.gifdecoder.StandardGifDecoder;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -54,7 +52,6 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
@@ -66,11 +63,9 @@ import com.google.firebase.storage.StorageReference;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.Hashtable;
-import java.util.List;
 import java.util.Map;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
@@ -159,10 +154,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 }
 
                 if (snapshot != null) {
-//                    Toast toast = Toast.makeText(getApplicationContext(), "Users moving",
-//                            Toast.LENGTH_LONG);
-//                    toast.setGravity(Gravity.TOP | Gravity.CENTER_HORIZONTAL, 0, 0);
-//                    toast.show();
                     getUsersPhotos();
                 } else {
                     Toast toast = Toast.makeText(getApplicationContext(), "Fail updating map",
@@ -182,22 +173,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         userMarkers.get(imageURL).remove();
         userMarkers.remove(imageURL);
        }
-//int counter = 0;
-//            String bitmapToRemove=null;
-//            Marker markerToRemove=null;
-//                for (String url:
-//                        imagesURL) {
-//
-//                    if(url == imageURL)
-//                    {
-//                        bitmapToRemove = url;
-//                        markerToRemove = markersOnMap.get(counter);
-//                        markerToRemove.remove();
-//                    }
-//                    counter++;
-//                }
-//                markersOnMap.remove(markerToRemove);
-//                imagesURL.remove(bitmapToRemove);
     }
     private void getUsersPhotos() {
 
@@ -358,10 +333,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             @Override
             public void onComplete(@NonNull Task<Void> task) {
                 if (task.isSuccessful()) {
-//                    Toast toast = Toast.makeText(getApplicationContext(), "User settings updated",
-//                            Toast.LENGTH_LONG);
-//                    toast.setGravity(Gravity.TOP | Gravity.CENTER_HORIZONTAL, 0, 0);
-//                    toast.show();
                 } else {
                     String error = task.getException().getMessage();
                     Toast toast = Toast.makeText(getApplicationContext(), "Firestore error: " + error,

@@ -3,7 +3,6 @@ package com.example.andr2app;
 import java.io.Serializable;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
-import java.util.Currency;
 
 @SuppressWarnings("serial")
 public class Product implements Serializable{

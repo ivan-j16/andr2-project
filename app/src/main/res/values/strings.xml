@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Better OLX</string>
+    <string name="app_name">Better Trade App</string>
     <string name="login_google">Login with Google</string>
     <string name="logout">Logout</string>
     <string name="login_email_pass">Login with email</string>

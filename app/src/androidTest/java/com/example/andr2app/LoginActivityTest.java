@@ -4,7 +4,6 @@ import androidx.test.espresso.Espresso;
 import androidx.test.espresso.matcher.ViewMatchers;
 import androidx.test.ext.junit.rules.ActivityScenarioRule;
 import androidx.test.internal.runner.junit4.AndroidJUnit4ClassRunner;
-import androidx.test.rule.ActivityTestRule;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -12,20 +11,15 @@ import org.junit.runner.RunWith;
 
 import static androidx.test.espresso.action.ViewActions.click;
 import static androidx.test.espresso.assertion.ViewAssertions.matches;
-import static androidx.test.espresso.matcher.RootMatchers.withDecorView;
 import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static androidx.test.espresso.matcher.ViewMatchers.withEffectiveVisibility;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
-import static androidx.test.espresso.matcher.ViewMatchers.withText;
-import static org.hamcrest.Matchers.not;
-import static org.junit.Assert.*;
 
 @RunWith(AndroidJUnit4ClassRunner.class)
 public class LoginActivityTest {
 
     @Rule
     public ActivityScenarioRule<LoginActivity> activityScenarioRule = new ActivityScenarioRule(LoginActivity.class);
-//    public ActivityTestRule<LoginActivity> activityTestRule = new ActivityTestRule<>(LoginActivity.class);
 
     @Test
     public void testActivityInView() {
@@ -64,7 +58,6 @@ public class LoginActivityTest {
                 .check(matches(withEffectiveVisibility(ViewMatchers.Visibility.VISIBLE)));
         Espresso.onView(withId(R.id.textPwrd))
                 .check(matches(withEffectiveVisibility(ViewMatchers.Visibility.VISIBLE)));
-
     }
 
     @Test
@@ -75,16 +68,4 @@ public class LoginActivityTest {
         // Check if new activity is in view
         Espresso.onView(withId(R.id.registerView)).check(matches(isDisplayed()));
     }
-
-    // Does not .getActivity() returns null
-//    @Test
-//    public void testToastMessage() {
-//
-//        Espresso.onView(withId(R.id.loginEmailPassword)).perform(click());
-//        Espresso.onView(withId(R.id.finalizeEmailPasswordLogin)).perform(click());
-//
-//        Espresso.onView(withText("Incorrect password and/or email"))
-//                .inRoot(withDecorView(not(activityTestRule.getActivity().getWindow().getDecorView())))
-//                .check(matches(isDisplayed()));
-//    }
 }
